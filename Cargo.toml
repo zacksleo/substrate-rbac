@@ -1,6 +1,6 @@
 [package]
 name = "substrate-rbac"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["gautamdhameja"]
 edition = "2018"
 license = "Apache-2.0"
@@ -28,20 +28,20 @@ version = '1.3.1'
 [dependencies.sp-std]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
-tag = 'v2.0.0-rc4'
-version = '2.0.0-rc4'
+tag = 'v3.0.0'
+version = '3.0.0'
 
 [dependencies.sp-runtime]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
-tag = 'v2.0.0-rc4'
-version = '2.0.0-rc4'
+tag = 'v3.0.0'
+version = '3.0.0'
 
 [dependencies.sp-io]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
-tag = 'v2.0.0-rc4'
-version = '2.0.0-rc4'
+tag = 'v3.0.0'
+version = '3.0.0'
 
 [dependencies.serde]
 features = ['derive']
@@ -51,18 +51,18 @@ version = '1.0.101'
 [dependencies.sp-core]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
-tag = 'v2.0.0-rc4'
-version = '2.0.0-rc4'
+tag = 'v3.0.0'
+version = '3.0.0'
 
 [dependencies.frame-support]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
-tag = 'v2.0.0-rc4'
-version = '2.0.0-rc4'
+tag = 'v3.0.0'
+version = '3.0.0'
 
 [dependencies.system]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'frame-system'
-tag = 'v2.0.0-rc4'
-version = '2.0.0-rc4'
+tag = 'v3.0.0'
+version = '3.0.0'
