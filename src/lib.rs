@@ -12,9 +12,11 @@ use frame_support::{
     decl_event, decl_storage, decl_module, decl_error,
     dispatch,
     weights::DispatchInfo,
-    traits::GetCallMetadata
+    traits::GetCallMetadata,
 };
-use system::{self as system, ensure_root, ensure_signed};
+
+use frame_system::pallet_prelude::*;
+
 use sp_runtime::{
     print, RuntimeDebug,
     transaction_validity::{
@@ -25,8 +27,8 @@ use sp_runtime::{
     traits::{SignedExtension, DispatchInfoOf, Dispatchable}
 };
 
-pub trait Trait: system::Trait {
-    type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;    
+pub trait Config: frame_system::Config {
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
 }
 
 #[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
@@ -48,7 +50,7 @@ pub struct Role {
 }
 
 decl_storage! {
-    trait Store for Module<T: Trait> as RBAC {
+    trait Store for Module<T: Config> as RBAC {
         pub SuperAdmins get(fn super_admins): map hasher(blake2_128_concat) T::AccountId => ();
         pub Permissions get(fn permissions): map hasher(blake2_128_concat) (T::AccountId, Role) => ();
         pub Roles get(fn roles): map hasher(blake2_128_concat) Role => ();
@@ -64,13 +66,13 @@ decl_storage! {
 }
 
 decl_error! {
-	pub enum Error for Module<T: Trait> {
+	pub enum Error for Module<T: Config> {
 		AccessDenied
 	}
 }
 
 decl_module! {
-    pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+    pub struct Module<T: Config> for enum Call where origin: T::Origin {
         type Error = Error<T>;
         fn deposit_event() = default;
 
@@ -84,10 +86,10 @@ decl_module! {
             };
 
             Roles::insert(role, ());
-            
+
             Ok(())
         }
-        
+
         #[weight = 0]
         pub fn assign_role(origin, account_id: T::AccountId, role: Role) -> dispatch::DispatchResult {
             let who = ensure_signed(origin)?;
@@ -98,7 +100,7 @@ decl_module! {
             } else {
                 return Err(Error::<T>::AccessDenied.into())
             }
-            
+
             Ok(())
         }
 
@@ -112,13 +114,13 @@ decl_module! {
             } else {
                 return Err(Error::<T>::AccessDenied.into())
             }
-            
+
             Ok(())
         }
 
         /// Add a new Super Admin.
         /// Super Admins have access to execute and manage all pallets.
-        /// 
+        ///
         /// Only _root_ can add a Super Admin.
         #[weight = 0]
         pub fn add_super_admin(origin, account_id: T::AccountId) -> dispatch::DispatchResult {
@@ -133,7 +135,7 @@ decl_module! {
 decl_event!(
     pub enum Event<T>
     where
-        AccountId = <T as system::Trait>::AccountId,
+        AccountId = <T as frame_system::Config>::AccountId,
     {
         AccessRevoked(AccountId, Vec<u8>),
         AccessGranted(AccountId, Vec<u8>),
@@ -142,7 +144,7 @@ decl_event!(
 );
 
 
-impl<T: Trait> Module<T> {
+impl<T: Config> Module<T> {
     pub fn verify_execute_access(account_id: T::AccountId, pallet: Vec<u8>) -> bool {
         let role = Role {
             pallet,
@@ -181,10 +183,10 @@ impl<T: Trait> Module<T> {
 
 /// The `Authorize` struct.
 #[derive(Encode, Decode, Clone, Eq, PartialEq)]
-pub struct Authorize<T: Trait + Send + Sync>(PhantomData<T>);
+pub struct Authorize<T: Config + Send + Sync>(PhantomData<T>);
 
 /// Debug impl for the `Authorize` struct.
-impl<T: Trait + Send + Sync> Debug for Authorize<T> {
+impl<T: Config + Send + Sync> Debug for Authorize<T> {
 	#[cfg(feature = "std")]
 	fn fmt(&self, f: &mut sp_std::fmt::Formatter) -> sp_std::fmt::Result {
 		write!(f, "Authorize")
@@ -196,7 +198,7 @@ impl<T: Trait + Send + Sync> Debug for Authorize<T> {
 	}
 }
 
-impl<T: Trait + Send + Sync> SignedExtension for Authorize<T> where 
+impl<T: Config + Send + Sync> SignedExtension for Authorize<T> where
     T::Call: Dispatchable<Info=DispatchInfo> + GetCallMetadata {
     type AccountId = T::AccountId;
 	type Call = T::Call;
