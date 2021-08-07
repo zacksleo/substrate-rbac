@@ -54,8 +54,8 @@ pub mod pallet {
     #[derive(PartialEq, Eq, Clone, RuntimeDebug, Encode, Decode)]
     #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
     pub struct Role {
-        pallet: Vec<u8>,
-        permission: Permission,
+        pub pallet: Vec<u8>,
+        pub permission: Permission,
     }
 
     #[pallet::config]
@@ -317,7 +317,10 @@ pub mod pallet {
                     propagate: true,
                     ..Default::default()
                 })
-            } else if <Pallet<T>>::verify_access(who.clone(), md.pallet_name.as_bytes().to_vec()) {
+            } else if <Pallet<T>>::verify_access(
+                who.clone(),
+                md.pallet_name.as_bytes().to_vec(),
+            ) {
                 print("Access Granted!");
                 Ok(ValidTransaction {
                     priority: info.weight as TransactionPriority,
