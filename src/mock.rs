@@ -73,7 +73,12 @@ pub fn account_key(s: &str) -> sr25519::Public {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::default().build_storage::<Test>().unwrap().into()
+	let storage = system::GenesisConfig::default().build_storage::<Test>().unwrap();
+	let mut ext = sp_io::TestExternalities::new(storage);
+	// Events are not emitted on block 0 -> advance to block 1.
+	// Any dispatchable calls made during genesis block will have no events emitted.
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }
 
 pub struct MockOrigin<T>(PhantomData<T>);
