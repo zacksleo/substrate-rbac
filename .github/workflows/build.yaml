@@ -1,55 +1,42 @@
-name: build
+name: Check Set-Up & Build
 
+# Controls when the action will run.
 on:
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  check:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
 
-  ci:
-    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: hecrj/setup-rust-action@v1
-        with:
-          rust-version: nightly-2020-10-05
-          components: clippy, rustfmt
-          targets: wasm32-unknown-unknown
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
 
-      - name: Checkout sources
-        uses: actions/checkout@v1
+      - name: Set-Up
+        run: sudo apt install -y cmake pkg-config libssl-dev git build-essential clang libclang-dev curl
 
-      # Steps taken from https://github.com/actions/cache/blob/master/examples.md#rust---cargo
-      - name: Cache cargo registry
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v1
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Check Formatting
-        run: cargo fmt --all -- --check
-
-      - name: Unleash clippy
-        run: cargo clippy -- -D warnings -A deprecated
-
-      - name: Build Native
-        run: cargo build
-
-      - name: Build Wasm
-        run: cargo +nightly-2020-10-05 build --target wasm32-unknown-unknown --no-default-features
-
-      - name: Run tests
-        run: cargo test
+      - name: Install Rustup
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y
+          source ~/.cargo/env
+          rustup default stable
+          rustup update nightly
+          rustup update stable
+          rustup target add wasm32-unknown-unknown --toolchain nightly
+      - name: Check Build
+        run: |
+          SKIP_WASM_BUILD=1 cargo check --release
+      - name: Check Build for Benchmarking
+        run: >
+          pushd node &&
+          cargo check --features=runtime-benchmarks --release
